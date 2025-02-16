@@ -4,15 +4,15 @@ import BaseRoute from './baseRoute';
 import { AppError, JoiValidate, Log } from '../utils';
 import OrderJoiSchema from '../joiValidation';
 import { ERROR_TYPE, KAFKA_ORDER_TOPIC, MAX_KAFKA_RETRIES, ORDER_STATUS, VALIDATION_ERROR_MSG } from '../constant';
-import { OrderService } from '../services';
+import { OrderProcess } from '../services';
 import { connectProducer } from '../utils/kafkaConnection';
 
 
 class OrderRoute extends BaseRoute {
-    private readonly orderSvc: OrderService;
+    private readonly orderSvc: OrderProcess;
     constructor() {
         super();
-        this.orderSvc = new OrderService();
+        this.orderSvc = new OrderProcess();
     }
     public buildRoutes() {
         this.router.post('/', JoiValidate(OrderJoiSchema.createOrder), async (req: Request, res: Response, next: NextFunction) => {

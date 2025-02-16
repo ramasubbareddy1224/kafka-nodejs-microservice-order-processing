@@ -12,7 +12,7 @@ export const VALIDATION_ERROR_MSG = {
     UNABLE_TO_CREATE_ORDER: 'Unable to create order'
 }
 
-export const ORDER_STATUS = {
+export const PAYMENT_STATUS = {
     PENDING: 'pending',
     PAID: 'paid'
 }

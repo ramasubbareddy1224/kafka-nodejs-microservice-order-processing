@@ -2,6 +2,7 @@ version: '3'
 services:  
   kafka-broker-1:
     image: 'bitnami/kafka:3.3.1'
+    container_name: kafka-broker-1
     environment:
       - KAFKA_ENABLE_KRAFT=yes
       - KAFKA_CFG_PROCESS_ROLES=broker,controller
@@ -24,5 +25,53 @@ services:
     environment:
       - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=kafka-broker-1:9092
       - KAFKA_CLUSTERS_0_NAME=d8zv92ecQk6ZrAAA35SDbw      
+  order-service:
+    build:
+      context: ./order-service
+      target: builder
+    command: run dev
+    environment:
+      - NODE_ENV=development
+    env_file: ./order-service/.env
+    entrypoint: npm
+    ports:
+      - 5520:5519
+    depends_on:
+      - order-db
+    volumes:
+      - ./order-service:/usr/src/app
+      - /usr/src/app/node_modules
+
+  order-db:
+    image: hsheth2/mysql-low-memory:5.7
+    env_file: ./order-service/.env
+    container_name: order-db
+    ports:
+      - 3306:3306
+  payment-service:
+    build:
+      context: ./payment-service
+      target: builder
+    command: run dev
+    environment:
+      - NODE_ENV=development
+    env_file: ./payment-service/.env
+    entrypoint: npm
+    ports:
+      - 5521:5519
+    depends_on:
+      - payment-db
+    volumes:
+      - ./payment-service:/usr/src/app
+      - /usr/src/app/node_modules
+
+  payment-db:
+    image: hsheth2/mysql-low-memory:5.7
+    env_file: ./payment-service/.env
+    container_name: payment-db
+    ports:
+      - 3307:3306
+
+
 
 

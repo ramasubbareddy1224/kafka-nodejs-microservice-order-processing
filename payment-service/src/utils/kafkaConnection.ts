@@ -4,12 +4,12 @@ import { ERROR_TYPE, VALIDATION_ERROR_MSG } from '../constant';
 import { envConfig } from '../env';
 
 const kafka = new Kafka({
-    clientId: 'order-service',
+    clientId: 'payment-service',
     brokers: [envConfig.KAFKA_BROKER]
 });
 
 const producer: Producer = kafka.producer();
-const consumer = kafka.consumer({ groupId: 'order-service-group' });
+const consumer = kafka.consumer({ groupId: 'payment-service-group' });
 
 export const connectProducer = async (): Promise<Producer> => {
     try {

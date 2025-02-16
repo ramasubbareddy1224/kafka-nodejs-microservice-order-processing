@@ -5,14 +5,15 @@ import type { Application } from 'express';
 import loadRoutes from './loadRoutes';
 import App from './app';
 import HandleError from './utils/handleError';
-import { connectConsumer } from './utils/kafkaConnection';
-import { KAFKA_PAYMENT_TOPIC } from './constant';
-import { OrderProcess } from './services';
+import { connectConsumer, connectProducer } from './utils/kafkaConnection';
+import { KAFKA_ORDER_TOPIC, KAFKA_PAYMENT_TOPIC, PAYMENT_STATUS } from './constant';
+import { PaymentProcess } from './services';
 
-class OrderService {
+class PaymentService {
     public app: Application;
     public port: number;
-    private readonly orderSvc: OrderProcess = new OrderProcess();
+    private readonly paymentSvc: PaymentProcess = new PaymentProcess();
+
 
     async start(): Promise<void> {
 
@@ -22,8 +23,9 @@ class OrderService {
         loadRoutes(this.app);
 
         this.app.use(HandleError);
-        await this.runKafaConsumer();
+
         process.env.HEALTH_STATUS = 'READY';
+        await this.runKafaConsumer();
         Log.info('Initialization successful. Service is Ready');
     }
 
@@ -58,22 +60,31 @@ class OrderService {
     async runKafaConsumer(): Promise<void> {
         const consumer = await connectConsumer();
 
-        await consumer.subscribe({ topic: KAFKA_PAYMENT_TOPIC, fromBeginning: true });
+        await consumer.subscribe({ topic: KAFKA_ORDER_TOPIC, fromBeginning: true });
 
         await consumer.run({
             eachMessage: async ({ message }) => {
                 const order = JSON.parse(message.value.toString());
-                console.log('Processing payment order details:', order);
+                console.log('Processing order details:', order);
 
                 // check if payment already processed for the given order
-                const idempotencyCheck = await this.orderSvc.checkPaymentProcess(order.order_id);
+                const idempotencyCheck = await this.paymentSvc.checkPaymentIdempotency(order.id);
                 if (idempotencyCheck) {
-                    Log.info(`Payment status already updated for order ${order.order_id}`);
+                    Log.info(`Payment already processed for order ${order.id}`);
                     return;
                 }
+
+                const paymentConfirmation = { order_id: order.id, status: PAYMENT_STATUS.PAID };
                 // Store payment confirmation in MySQL
-                await this.orderSvc.updatePaymentOrder({ id: order.order_id, status: order.status });
-                Log.info(`Payment status updated for order ${order.order_id}`);
+                await this.paymentSvc.createPayment(paymentConfirmation);
+
+                // send payment confirmation to Kafka Topic
+                const producer = await connectProducer();
+                await producer.send({
+                    topic: KAFKA_PAYMENT_TOPIC,
+                    messages: [{ value: JSON.stringify(paymentConfirmation) }]
+                });
+                Log.info(`Payment processed for order ${order.id}`);
             }
         });
     }
@@ -81,7 +92,7 @@ class OrderService {
 
 // Shutdown Hook
 process.on('SIGTERM', () => {
-    orderSvc.app.set('HEALTH_STATUS', 'SHUTTING_DOWN');
+    paymentSvc.app.set('HEALTH_STATUS', 'SHUTTING_DOWN');
     process.exit(0);
 });
 
@@ -96,7 +107,7 @@ process.on('SIGTERM', () => {
 //     })
 // })
 
-const orderSvc = new OrderService();
-Log.info('OrderService api service: start the express server');
-orderSvc.start();
+const paymentSvc = new PaymentService();
+Log.info('PaymentService api service: start the express server');
+paymentSvc.start();
 
