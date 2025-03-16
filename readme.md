@@ -1,6 +1,7 @@
 # Kafka Node.js Microservice Order Processing
 
-This repository contains a Node.js microservice for processing orders using Apache Kafka.
+This repository contains a Node.js microservices for processing orders using Apache Kafka.
+Read more @https://millionvisit.blogspot.com/2025/03/Order-Processing-with-Kafka-Nodejs-Microservices-MySQL.html
 
 ## Prerequisites
 
@@ -14,31 +15,15 @@ This repository contains a Node.js microservice for processing orders using Apac
     cd kafka-nodejs-microservice-order-processing
     ```
 
-2. Install dependencies:
+2. Start all the Docker containers by running the following command.:
     ```sh
-    npm install
+    docker-compose up -d --build
     ```
 
-3. Configure environment variables:
-    Create a `.env` file in the root directory and add the following variables:
-    ```env
-    KAFKA_BROKER=localhost:9092
-    KAFKA_TOPIC=order_topic
-    ```
+## Order Microservice:
 
-## Running the Service
+The Order Microservice is responsible for accepting new order requests, storing the details in the Order Database, and publishing the order information to the Kafka Order Topic.
 
-1. Start Kafka (if not already running):
-    ```sh
-    docker-compose up -d
-    ```
+## Payment Microservice:
 
-2. Start the microservice:
-    ```sh
-    npm start
-    ```
-
-## Usage
-
-- The microservice listens for order messages on the specified Kafka topic.
-- Processed orders are logged to the console.
+The Payment Microservice listens to the Kafka Order Topic for new orders, processes payments, and stores payment statuses in a database, and publishing the payment information to the Kafka Payment Topic.
