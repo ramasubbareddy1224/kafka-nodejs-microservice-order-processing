@@ -1,7 +1,7 @@
 # Kafka Node.js Microservice Order Processing
 
 This repository contains a Node.js microservices for processing orders using Apache Kafka.
-Read more @https://millionvisit.blogspot.com/2025/03/Order-Processing-with-Kafka-Nodejs-Microservices-MySQL.html
+Read more @https://millionvisit.blogspot.com/2025/03/apache-kafka-for-developers-14-Order-Processing-with-Kafka-Nodejs-Microservices-MySQL.html
 
 ## Prerequisites
 
@@ -11,7 +11,7 @@ Read more @https://millionvisit.blogspot.com/2025/03/Order-Processing-with-Kafka
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/yourusername/kafka-nodejs-microservice-order-processing.git
+    git clone https://github.com/ramasubbareddy1224/kafka-nodejs-microservice-order-processing.git
     cd kafka-nodejs-microservice-order-processing
     ```
 
